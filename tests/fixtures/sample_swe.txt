@@ -1,0 +1,44 @@
+Software Engineer - Backend
+
+Company: TechCorp Inc.
+Location: San Francisco, CA (Hybrid)
+Job ID: TC-2024-1234
+
+About Us
+TechCorp is a leading technology company building the next generation of cloud infrastructure. We serve millions of users worldwide and are growing rapidly.
+
+The Role
+We're looking for a talented Backend Software Engineer to join our Platform team. You'll work on building scalable microservices that power our core product offerings.
+
+Responsibilities
+- Design and implement RESTful APIs and microservices
+- Write clean, maintainable, and well-tested code
+- Collaborate with frontend engineers and product managers
+- Participate in code reviews and technical discussions
+- Contribute to system architecture decisions
+- On-call rotation for production systems
+
+Requirements
+- 3+ years of experience in backend development
+- Proficiency in Python, Go, or Java
+- Experience with SQL and NoSQL databases
+- Familiarity with cloud platforms (AWS, GCP, or Azure)
+- Strong understanding of distributed systems
+- Excellent problem-solving skills
+
+Nice to Have
+- Experience with Kubernetes and Docker
+- Knowledge of message queues (Kafka, RabbitMQ)
+- Contributions to open-source projects
+
+Compensation
+$150,000 - $200,000 annually + equity + benefits
+
+Benefits
+- Comprehensive health, dental, and vision insurance
+- 401(k) with company match
+- Unlimited PTO
+- Remote work flexibility
+- Professional development budget
+
+TechCorp is an equal opportunity employer.
