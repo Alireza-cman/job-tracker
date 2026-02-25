@@ -13,6 +13,8 @@ import time
 from datetime import datetime
 from typing import Optional, Tuple
 from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()
 
 # Use passlib with PBKDF2-SHA256 for secure password hashing (no length limit)
 from passlib.hash import pbkdf2_sha256
