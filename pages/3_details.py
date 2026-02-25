@@ -3,10 +3,14 @@ Details Page - View and edit individual job applications
 """
 import streamlit as st
 
+from core.session import require_login, show_user_sidebar, get_current_user_id
 from backend.models import ApplicationStatus
 from backend.database import get_application, get_all_applications, update_application, delete_application
 
 st.set_page_config(page_title="Application Details", page_icon="📄", layout="wide")
+
+# Require authentication
+require_login()
 
 # Apply consistent styling
 st.markdown("""
@@ -38,10 +42,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Show user info in sidebar
+show_user_sidebar()
+
+# Get current user
+user_id = get_current_user_id()
+
 st.title("📄 Application Details")
 
-# Get all applications for selector
-all_apps = get_all_applications()
+# Get all applications for current user
+all_apps = get_all_applications(user_id)
 
 if not all_apps:
     st.info("No applications found. Add your first application from the 'New Application' page!")
@@ -71,8 +81,8 @@ selected_id = st.selectbox(
     index=list(app_options.keys()).index(preselected_id) if preselected_id in app_options else 0,
 )
 
-# Get selected application
-app = get_application(selected_id)
+# Get selected application (user-scoped)
+app = get_application(user_id, selected_id)
 
 if not app:
     st.error("Application not found!")
@@ -171,17 +181,17 @@ with col2:
     
     with quick_col1:
         if st.button("✅ Applied", use_container_width=True):
-            update_application(app.id, status=ApplicationStatus.APPLIED)
+            update_application(user_id, app.id, status=ApplicationStatus.APPLIED)
             st.rerun()
     
     with quick_col2:
         if st.button("🎤 Interview", use_container_width=True):
-            update_application(app.id, status=ApplicationStatus.INTERVIEWING)
+            update_application(user_id, app.id, status=ApplicationStatus.INTERVIEWING)
             st.rerun()
     
     with quick_col3:
         if st.button("❌ Rejected", use_container_width=True):
-            update_application(app.id, status=ApplicationStatus.REJECTED)
+            update_application(user_id, app.id, status=ApplicationStatus.REJECTED)
             st.rerun()
 
 # Notes
@@ -200,6 +210,7 @@ col1, col2, col3 = st.columns([1, 1, 3])
 with col1:
     if st.button("💾 Save Changes", type="primary", use_container_width=True):
         success = update_application(
+            user_id,
             app.id,
             status=ApplicationStatus(new_status),
             notes=notes,
@@ -225,7 +236,7 @@ if st.session_state.get("confirm_delete"):
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Yes, delete", type="primary"):
-            if delete_application(app.id):
+            if delete_application(user_id, app.id):
                 st.session_state.confirm_delete = False
                 st.success("Application deleted!")
                 st.rerun()

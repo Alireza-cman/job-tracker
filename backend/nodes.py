@@ -286,8 +286,9 @@ def normalize_validate(state: Dict[str, Any]) -> Dict[str, Any]:
 
 # Node 6: Deduplication check
 def dedupe_check(state: Dict[str, Any]) -> Dict[str, Any]:
-    """Generate fingerprint and check for duplicates."""
+    """Generate fingerprint and check for duplicates (user-scoped)."""
     extracted = state.get("extracted")
+    user_id = state.get("user_id")
     
     if not extracted:
         return {"error": "No data to check for duplicates"}
@@ -307,8 +308,10 @@ def dedupe_check(state: Dict[str, Any]) -> Dict[str, Any]:
     fingerprint_input = "|".join(components)
     fingerprint = hashlib.sha256(fingerprint_input.encode()).hexdigest()[:32]
     
-    # Check database for existing
-    existing_id = check_fingerprint(fingerprint)
+    # Check database for existing (user-scoped if user_id provided)
+    existing_id = None
+    if user_id:
+        existing_id = check_fingerprint(user_id, fingerprint)
     
     return {
         "fingerprint": fingerprint,

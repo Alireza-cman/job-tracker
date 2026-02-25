@@ -6,11 +6,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from core.session import require_login, show_user_sidebar, get_current_user_id
 from backend.models import InputMode, ApplicationStatus, JobApplication
 from backend.pipeline import run_extraction
 from backend.database import save_application
 
 st.set_page_config(page_title="New Application", page_icon="➕", layout="wide")
+
+# Require authentication
+require_login()
 
 # Apply consistent styling
 st.markdown("""
@@ -41,6 +45,12 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+# Show user info in sidebar
+show_user_sidebar()
+
+# Get current user
+user_id = get_current_user_id()
 
 st.title("➕ New Application")
 st.markdown("Add a job application by providing a URL or pasting the job description text.")
@@ -101,13 +111,14 @@ if extract_clicked:
     elif input_mode == "Paste Text" and not text_input:
         st.error("Please paste job description text")
     else:
-        # Run extraction pipeline
+        # Run extraction pipeline with user_id for deduplication
         with st.spinner("Extracting job information..."):
             mode = InputMode.URL if input_mode == "URL" else InputMode.TEXT
             result = run_extraction(
                 input_mode=mode,
                 input_url=url_input if mode == InputMode.URL else None,
                 input_text=text_input if mode == InputMode.TEXT else None,
+                user_id=user_id,
             )
         
         # Check for errors
@@ -221,6 +232,7 @@ if st.session_state.extracted_data:
             
             try:
                 app_id = save_application(
+                    user_id=user_id,
                     application=updated_app,
                     raw_text=st.session_state.raw_text or "",
                     fingerprint=st.session_state.fingerprint or "",

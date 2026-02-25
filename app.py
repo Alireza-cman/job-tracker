@@ -2,6 +2,12 @@
 Job Application Tracker - Main Streamlit Entry Point
 """
 import streamlit as st
+from dotenv import load_dotenv
+
+load_dotenv()
+
+from core.session import require_login, show_user_sidebar, get_current_user_id
+from backend.database import get_stats
 
 st.set_page_config(
     page_title="Job Application Tracker",
@@ -9,6 +15,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Require authentication
+require_login()
 
 # Custom CSS for a polished look
 st.markdown("""
@@ -61,6 +70,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Show user info in sidebar
+show_user_sidebar()
+
 st.title("💼 Job Application Tracker")
 
 st.markdown("""
@@ -80,10 +92,10 @@ Welcome to your personal job application tracker! This tool helps you:
 3. **Details** - View and edit individual applications
 """)
 
-# Show quick stats if database exists
-from backend.database import get_stats
+# Show quick stats for current user
+user_id = get_current_user_id()
+stats = get_stats(user_id)
 
-stats = get_stats()
 if stats["total"] > 0:
     st.markdown("---")
     st.subheader("📊 Quick Stats")

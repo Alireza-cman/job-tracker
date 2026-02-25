@@ -30,6 +30,7 @@ class GraphState(TypedDict, total=False):
     input_mode: InputMode
     input_url: Optional[str]
     input_text: Optional[str]
+    user_id: Optional[str]  # For user-scoped deduplication
     
     # Processing
     fetched_text: Optional[str]
@@ -108,6 +109,7 @@ def run_extraction(
     input_mode: InputMode,
     input_url: Optional[str] = None,
     input_text: Optional[str] = None,
+    user_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Run the extraction pipeline.
@@ -116,6 +118,7 @@ def run_extraction(
         input_mode: Whether input is URL or TEXT
         input_url: URL to fetch (if mode is URL)
         input_text: Raw text (if mode is TEXT)
+        user_id: Current user ID for user-scoped deduplication
     
     Returns:
         Final state dict with extracted data or error
@@ -133,6 +136,7 @@ def run_extraction(
         "input_mode": mode_str,  # Use string value
         "input_url": input_url,
         "input_text": input_text,
+        "user_id": user_id,
         "fetched_text": None,
         "cleaned_text": None,
         "fetch_error": None,
@@ -153,11 +157,11 @@ def run_extraction(
     return result
 
 
-def extract_from_url(url: str) -> Dict[str, Any]:
+def extract_from_url(url: str, user_id: Optional[str] = None) -> Dict[str, Any]:
     """Convenience function to extract from URL."""
-    return run_extraction(InputMode.URL, input_url=url)
+    return run_extraction(InputMode.URL, input_url=url, user_id=user_id)
 
 
-def extract_from_text(text: str) -> Dict[str, Any]:
+def extract_from_text(text: str, user_id: Optional[str] = None) -> Dict[str, Any]:
     """Convenience function to extract from text."""
-    return run_extraction(InputMode.TEXT, input_text=text)
+    return run_extraction(InputMode.TEXT, input_text=text, user_id=user_id)

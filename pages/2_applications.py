@@ -5,11 +5,15 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
+from core.session import require_login, show_user_sidebar, get_current_user_id
 from backend.models import ApplicationStatus
-from backend.database import get_all_applications, get_stats
+from backend.database import get_all_applications, get_stats, update_application
 from backend.export import get_csv_bytes
 
 st.set_page_config(page_title="Applications", page_icon="📋", layout="wide")
+
+# Require authentication
+require_login()
 
 # Apply consistent styling
 st.markdown("""
@@ -35,10 +39,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Show user info in sidebar
+show_user_sidebar()
+
+# Get current user
+user_id = get_current_user_id()
+
 st.title("📋 Applications")
 
-# Stats row
-stats = get_stats()
+# Stats row (user-scoped)
+stats = get_stats(user_id)
 
 if stats["total"] > 0:
     cols = st.columns(6)
@@ -95,10 +105,11 @@ with col4:
 if clear_filters:
     st.rerun()
 
-# Get filtered applications
+# Get filtered applications (user-scoped)
 status_enum_filter = [ApplicationStatus(s) for s in status_filter] if status_filter else None
 
 applications = get_all_applications(
+    user_id=user_id,
     status_filter=status_enum_filter,
     company_search=company_search if company_search else None,
     keyword_search=keyword_search if keyword_search else None,
@@ -110,7 +121,7 @@ st.markdown("---")
 col1, col2 = st.columns([1, 5])
 with col1:
     if applications:
-        csv_data = get_csv_bytes()
+        csv_data = get_csv_bytes(user_id)  # User-scoped export
         st.download_button(
             label="📥 Export CSV",
             data=csv_data,
@@ -191,7 +202,7 @@ else:
     if selected_id:
         selected_app = next(a for a in applications if a.id == selected_id)
         
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns([2, 2, 2])
         
         with col1:
             st.markdown(f"**Company:** {selected_app.company}")
@@ -201,9 +212,26 @@ else:
         
         with col2:
             st.markdown(f"**Type:** {selected_app.job_type or 'Not specified'}")
-            st.markdown(f"**Status:** {selected_app.status.value}")
             if selected_app.url:
                 st.markdown(f"**URL:** [{selected_app.url[:50]}...]({selected_app.url})")
+        
+        with col3:
+            # Inline status update
+            st.markdown("**Update Status:**")
+            current_status_idx = [s.value for s in ApplicationStatus].index(selected_app.status.value)
+            new_status = st.selectbox(
+                "Status",
+                options=[s.value for s in ApplicationStatus],
+                index=current_status_idx,
+                key=f"status_{selected_id}",
+                label_visibility="collapsed",
+            )
+            
+            if new_status != selected_app.status.value:
+                if st.button("💾 Save Status", key=f"save_{selected_id}", use_container_width=True):
+                    update_application(user_id, selected_id, status=ApplicationStatus(new_status))
+                    st.success(f"Status updated to {new_status}!")
+                    st.rerun()
         
         st.markdown("**Description:**")
         st.markdown(selected_app.description)
